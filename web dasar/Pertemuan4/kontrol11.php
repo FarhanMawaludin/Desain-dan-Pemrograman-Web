@@ -1,25 +1,38 @@
 <?php
 $nilai = [85,92,78,64,90,75,88,79,70,96];
 
-sort($nilai);
 
-echo "Nilai terkecil ke-1: " . $nilai[0] . "<br>";
-echo "Nilai terkecil ke-2: " . $nilai[1] . "<br>";
-echo "Nilai terbesar ke-1: " . $nilai[count($nilai) - 1] . "<br>";
-echo "Nilai terbesar ke-2: " . $nilai[count($nilai) - 2] . "<br>";
-
-
-$nilai_filtered = array_slice($nilai, 2, -2);
-
-
-
-$total_nilai = 0;
-for ($i = 0; $i < count($nilai_filtered); $i++) {
-    $total_nilai += $nilai_filtered[$i];
+$panjangnilai = 0;
+foreach ($nilai as $n) {
+    $panjangnilai++;
 }
 
-$rata_rata = $total_nilai / count($nilai_filtered);
 
-echo "Rata-rata nilai setelah mengabaikan 2 nilai tertinggi dan terendah: " . $rata_rata;
+for ($i = 0; $i < $panjangnilai - 1; $i++) {
+    for ($j = 0; $j < $panjangnilai - 1 - $i; $j++) {
+        if ($nilai[$j] > $nilai[$j + 1]) {
+            $temp = $nilai[$j];
+            $nilai[$j] = $nilai[$j + 1];
+            $nilai[$j + 1] = $temp;
+        }
+    }
+}
+
+echo "Nilai setelah diurutkan: ";
+for ($i = 0; $i < $panjang_nilai; $i++) {
+    echo $nilai[$i] . " ";
+}
+
+echo "<br>";
+
+$totalnilai = 0;
+echo "Nilai setelah dikeluarkan :";
+for ($i = 2; $i < $panjang_nilai - 2; $i++) {
+    echo $nilai[$i] . " ";
+    $totalnilai += $nilai[$i];
+}
+
+
+echo "<br> Total Nilai: " . $totalnilai;
 
 ?>
