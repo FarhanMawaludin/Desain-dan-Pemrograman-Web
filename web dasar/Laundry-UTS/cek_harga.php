@@ -155,7 +155,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['laundry_count'] = 0; 
     }
     
-    $_SESSION['laundry_count'] += 1; 
 
   
     if ($_SESSION['laundry_count'] == 6) {
