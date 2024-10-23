@@ -1,0 +1,23 @@
+.login-container {
+    width: 300px;
+    margin: 100px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.login-container h4 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.login-container .form-group {
+    margin-bottom: 15px;
+}
+.login-container .btn-login {
+    width: 100%;
+    background-color: #ccc;
+    color: black;
+}
+
+.username{
+    margin-right: 20px;
+}
