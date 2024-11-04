@@ -55,6 +55,7 @@ include "auth.php";
                         <label for="nama">Nama:</label>
                         <input type="hidden" name="id" id="id">
                         <input type="text" name="nama" id="nama" class="form-control" required>
+                        <p class="text-danger" id="err_nama"></p>
                     </div>
                 </div>
 
@@ -64,17 +65,20 @@ include "auth.php";
                         <input type="radio" name="jenis_kelamin" id="jekel1" value="L" required> Laki-Laki
                         <input type="radio" name="jenis_kelamin" id="jekel2" value="P"> Perempuan
                     </div>
+                    <p class="text-danger" id="err_jenis_kelamin"></p>
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="alamat">Alamat:</label>
                 <textarea name="alamat" id="alamat" class="form-control" required></textarea>
+                <p class="text-danger" id="err_alamat"></p>
             </div>
 
             <div class="form-group mb-3">
                 <label for="no_telp">No Telepon:</label>
                 <input type="number" name="no_telp" id="no_telp" class="form-control" required>
+                <p class="text-danger" id="err_no_telp"></p>
             </div>
 
             <div class="form-group mb-3">
@@ -98,16 +102,23 @@ include "auth.php";
     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables.net-bs5/1.11.5/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 
-<script type="text/javascript">
-    $(document).ready(function() {
-        $.ajaxSetup({
-            headers: {
-                'Csrf-Token': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
+    <script type="text/javascript">
+$(document).ready(function() {
+    $.ajaxSetup({
+        headers: {
+            'Csrf-Token': $('meta[name="csrf-token"]').attr('content')
+        }
+    })
+    $('.data').load('data.php');
 
-        // Load table data and initialize DataTable
+    // Load table data and initialize DataTable
+    function loadData() {
         $('.data').load('data.php', function() {
+            // Destroy existing DataTable if it exists
+            if ($.fn.DataTable.isDataTable('#data-table')) {
+                $('#data-table').DataTable().destroy();
+            }
+
             // Initialize DataTable only after content is loaded
             $('#data-table').DataTable({
                 dom: '<"row"<"col-sm-6"l><"col-sm-6"f>>tip',
@@ -130,7 +141,66 @@ include "auth.php";
                 }
             });
         });
+    }
+
+    loadData(); // Initial load of data
+
+    // Form validation and submission
+    $("#simpan").click(function(event) {
+        event.preventDefault(); // Prevent form from submitting normally
+        var data = $(".form-data").serialize();
+        var jenkel1 = document.getElementById("jekel1").checked;
+        var jenkel2 = document.getElementById("jekel2").checked;
+        var nama = document.getElementById("nama").value;
+        var alamat = document.getElementById("alamat").value;
+        var no_telp = document.getElementById("no_telp").value;
+
+        // Validation checks
+        if (nama == "") {
+            document.getElementById("err_nama").innerHTML = "Nama Harus Diisi!";
+        } else {
+            document.getElementById("err_nama").innerHTML = "";
+        }
+
+        if (alamat == "") {
+            document.getElementById("err_alamat").innerHTML = "Alamat Harus Diisi!";
+        } else {
+            document.getElementById("err_alamat").innerHTML = "";
+        }
+
+        if (!jenkel1 && !jenkel2) {
+            document.getElementById("err_jenis_kelamin").innerHTML = "Jenis Kelamin Harus Dipilih!";
+        } else {
+            document.getElementById("err_jenis_kelamin").innerHTML = "";
+        }
+
+        if (no_telp == "") {
+            document.getElementById("err_no_telp").innerHTML = "No Telepon Harus Diisi!";
+        } else {
+            document.getElementById("err_no_telp").innerHTML = "";
+        }
+
+        if (nama != "" && alamat != "" && (jenkel1 || jenkel2) && no_telp != "") {
+            $.ajax({
+                    url: "form_action.php",
+                    type: "POST",
+                    data: data,
+                    success: function(response){
+                        $('.data').load('data.php');
+                        $('#id').val();
+                        $('.form-data').reset();
+
+                    }, error: function(response){
+                        console.log(response,responseText);
+                    } 
+                });
+        }
     });
+});
+
+
 </script>
+
+
 </body>
 </html>

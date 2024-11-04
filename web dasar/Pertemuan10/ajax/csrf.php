@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start(); // Start session only if it hasn't been started
+}
 header('Content-Type: application/json');
 
 if (empty($_SESSION['csrf_token'])) {

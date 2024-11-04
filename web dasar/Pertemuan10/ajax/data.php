@@ -1,4 +1,3 @@
-
 <table id="data-table" class="table table-bordered">
     <thead>
         <tr>
@@ -58,4 +57,55 @@
     $(document).ready(function() {
         $('#data-table').DataTable();
     });
+
+    function reset() {
+        document.getElementById("err_nama").innerHTML = "";
+        document.getElementById("err_jenis_kelamin").innerHTML = "";
+        document.getElementById("err_alamat").innerHTML = "";
+        document.getElementById("err_no_telp").innerHTML = "";
+    }
+
+    $(document).on('click', '.edit_data', function(){
+        var id = $(this).attr('id');
+        $.ajax({
+        type: "POST",
+        url: "get_data.php",
+        data: {id: id},
+        dataType: "json",
+        success: function(response){
+            console.log(response);
+            reset();
+            $('#id').val(response.id);
+            $('#nama').val(response.nama);
+            $('#alamat').val(response.alamat);
+            $('#no_telp').val(response.no_telp);
+            if (response.jenis_kelamin == "L") {
+                $('#jekel1').prop('checked', true);
+            } else {
+                $('#jekel2').prop('checked', true);
+            }
+        },
+        error: function(response){
+            console.log(response.responseText);
+        }
+    });
+});
+
+    $(document).on('click', '.hapus_data', function(){
+        var id = $(this).attr('id');
+        $.ajax({
+            type: "POST",
+            url: "hapus_data.php",
+            data: {id: id},
+            dataType: "json",
+            success: function(response){
+                console.log(response);
+                $('.data').load('data.php');
+            },
+            error: function(response){
+                console.log(response.responseText);
+            }
+        });
+    });
+
 </script>
