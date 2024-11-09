@@ -1,15 +1,9 @@
 <?php
 session_start();
-$error = $_SESSION['error'] ?? ''; 
 $errors = $_SESSION['errors'] ?? ''; 
 $username = $_SESSION['username'] ?? ''; 
 unset($_SESSION['errors']); 
 unset($_SESSION['username']); 
-
-if (isset($_SESSION['username'])) {
-    header('Location: home.php');
-    exit;
-}
 ?>
 
 <!DOCTYPE html>

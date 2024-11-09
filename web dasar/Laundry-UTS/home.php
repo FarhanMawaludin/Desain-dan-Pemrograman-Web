@@ -1,3 +1,10 @@
+<?php
+session_start();
+if (!isset($_SESSION['username'])) {
+    header('Location: login_form.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -13,7 +20,7 @@
             border-style: solid;
             border-color: black;
         }
-
+        
         footer {
             background-color: #007bff; 
             padding: 20px 0; 
@@ -182,7 +189,7 @@
 
 
 
-    <footer class="text-center">
+    <footer class="text-center mt-auto">
         <div class="container">
             <p class="mb-0">© 2024 LondriKuy. All rights reserved.</p>
         </div>
