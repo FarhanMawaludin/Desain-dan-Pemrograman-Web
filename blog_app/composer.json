@@ -1,0 +1,17 @@
+{
+    "name": "asus/blog_app",
+    "autoload": {
+        "psr-4": {
+            "Asus\\BlogApp\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "FarhanMawaludin",
+            "email": "farhanmawaludin7@gmail.com"
+        }
+    ],
+    "require": {
+        "mongodb/mongodb": "^1.20"
+    }
+}
