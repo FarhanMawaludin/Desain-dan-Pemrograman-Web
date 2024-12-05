@@ -1,64 +1,173 @@
 <?php
 require 'config/db.php';
 
-// Pastikan ID berita ada di URL
+// Ambil query pencarian dari input pengguna
+$searchQuery = isset($_GET['search']) ? htmlspecialchars(trim($_GET['search'])) : "";
+
+// Koleksi MongoDB
+$collection = $db->news;
+
+// Filter pencarian jika ada input pengguna
+$filter = [];
+if ($searchQuery) {
+    $filter['$or'] = [
+        ['title' => new MongoDB\BSON\Regex($searchQuery, 'i')],
+        ['content' => new MongoDB\BSON\Regex($searchQuery, 'i')]
+    ];
+}
+
+// Ambil berita berdasarkan filter dan urutan berdasarkan tanggal terbaru
+$cursor = $collection->find($filter, ['sort' => ['created_at' => -1]]);
+$newsList = iterator_to_array($cursor);
+
+// Halaman detail berita jika ada
+$news = null;
 if (isset($_GET['id'])) {
-    $id = new MongoDB\BSON\ObjectId($_GET['id']);
-    $collection = $db->news;
-
-    // Ambil berita berdasarkan ID
-    $news = $collection->findOne(['_id' => $id]);
-
-    // Jika berita tidak ditemukan
-    if (!$news) {
-        echo "<p>Berita tidak ditemukan.</p>";
+    try {
+        $id = new MongoDB\BSON\ObjectId($_GET['id']);
+        $news = $collection->findOne(['_id' => $id]);
+        if (!$news) {
+            echo "<p>Berita tidak ditemukan.</p>";
+            exit;
+        }
+    } catch (Exception $e) {
+        echo "<p>ID tidak valid.</p>";
         exit;
     }
-} else {
-    echo "<p>ID berita tidak tersedia.</p>";
-    exit;
 }
 ?>
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title><?= htmlspecialchars($news['title']) ?></title>
-    <link rel="stylesheet" href="css/style.css">
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $news ? htmlspecialchars($news['title']) . " | News++" : "News++" ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+    .card-text-custom {
+        display: -webkit-box;
+        display: box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    </style>
 </head>
+
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">News App</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <nav class="navbar navbar-expand-md navbar-light shadow-sm" style="font-size: 20px;">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-danger" href="index.php" style="font-size: 36px;">News++</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php">Berita</a>
+                        <a class="nav-link" href="index.php">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">All</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Kategori
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <a class="dropdown-item" href="#">Olahraga</a>
+                            <a class="dropdown-item" href="#">Pendidikan</a>
+                            <a class="dropdown-item" href="#">Teknologi</a>
+                        </div>
                     </li>
                 </ul>
             </div>
+            <form class="d-flex" method="get" action="index.php">
+                <input class="form-control me-2" type="search" name="search" placeholder="Search"
+                    value="<?= htmlspecialchars($searchQuery) ?>" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
         </div>
     </nav>
 
-    <!-- Detail Berita -->
     <div class="container mt-4">
-        <h1 class="mb-4"><?= htmlspecialchars($news['title']) ?></h1>
-        <p><strong>Kategori:</strong> <?= htmlspecialchars($news['category']) ?></p>
-        <p><strong>Penulis:</strong> <?= htmlspecialchars($news['author']) ?></p>
-        <p><strong>Tanggal:</strong> <?= $news['created_at']->toDateTime()->format('Y-m-d H:i:s') ?></p>
-        <p><strong>Ringkasan:</strong> <?= htmlspecialchars($news['summary']) ?></p>
-        <h3>Konten:</h3>
-        <p><?= nl2br(htmlspecialchars($news['content'])) ?></p>
-        <a href="index.php" class="btn btn-secondary mt-3">Kembali ke Berita</a>
+        <?php if ($news): ?>
+        <!-- Halaman Detail Berita -->
+        <div class="row">
+            <div class="bg-secondary text-white text-center py-5" style="height: 400px;">
+                <h1>
+                <img src="<?= isset($news['image']) ? 'images/' . $news['image'] : 'https://placehold.co/300x200' ?>"
+                class="card-img-top" alt="News Image">
+                </h1>
+                
+            </div>
+            <h2 class="mt-4 fw-bold"><?= htmlspecialchars($news['title']) ?></h2>
+            <div class="d-flex align-items-center mt-2 mb-4">
+                <img src="https://placehold.co/40x40" alt="Author's profile picture" class="rounded-circle me-2">
+                <span class="fw-semibold fs-5"><?= htmlspecialchars($news['author']) ?></span>
+                <span class="mx-3"><?= $news['created_at']->toDateTime()->format('Y-m-d H:i:s') ?></span>
+                <span class="badge bg-danger"><?= htmlspecialchars($news['category']) ?></span>
+            </div>
+            <div class="text-justify" style="font-size: 18px;">
+                <p class="text-justify"><?= nl2br(htmlspecialchars($news['content'])) ?></p>
+            </div>
+            <a href="index.php" class="btn btn-secondary mt-3 mb-5">Kembali ke Berita</a>
+            <hr>
+            <h4 class="fw-bold mb-4 mt-4" style="font-size: 20px;">Berita Lainnya <a href="#"
+                    class="float-end text-danger fw-bold">See All</a></h4>
+            <div class="row">
+                <?php foreach ($newsList as $news): ?>
+                <div class="col-md-3 mb-4">
+                    <div class="card">
+                        <img src="<?= isset($news['image']) ? 'images/' . $news['image'] : 'https://placehold.co/300x200' ?>"
+                            class="card-img-top" alt="News Image">
+                        class="card-img-top" alt="<?= htmlspecialchars($news['title']) ?>">
+                        <div class="card-body">
+                            <h5 class="card-title"><?= htmlspecialchars($news['title']) ?></h5>
+                            <p class="card-text card-text-custom"><?= htmlspecialchars($news['summary']) ?></p>
+                            <a href="index.php?id=<?= $news['_id'] ?>" class="btn btn-danger">Selengkapnya</a>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php else: ?>
+        <!-- Halaman Berita -->
+        <h4 class="mb-4">Berita Lainnya</h4>
+        <?php if ($searchQuery): ?>
+        <p>Hasil pencarian untuk: <strong><?= htmlspecialchars($searchQuery) ?></strong></p>
+        <?php endif; ?>
+        <div class="row">
+            <?php foreach ($newsList as $news): ?>
+            <div class="col-md-3 mb-4">
+                <div class="card">
+                    <img src="<?= isset($news['image']) ? 'images/' . $news['image'] : 'https://placehold.co/300x200' ?>"
+                        class="card-img-top" alt="News Image">
+                    class="card-img-top" alt="<?= htmlspecialchars($news['title']) ?>">
+                    <div class="card-body">
+                        <h5 class="card-title"><?= htmlspecialchars($news['title']) ?></h5>
+                        <p class="card-text card-text-custom"><?= htmlspecialchars($news['summary']) ?></p>
+                        <a href="index.php?id=<?= $news['_id'] ?>" class="btn btn-danger">Selengkapnya</a>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

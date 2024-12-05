@@ -1,4 +1,4 @@
-body {
+/* body {
     font-family: Arial, sans-serif;
     margin: 20px;
 }
@@ -16,4 +16,15 @@ body {
 .news-item a {
     color: blue;
     text-decoration: none;
+} */
+
+.card-text-custom {
+    display: -webkit-box;
+    display: box; /* Add this for compatibility */
+    -webkit-line-clamp: 3; /* Jumlah baris yang ingin ditampilkan */
+    line-clamp: 3; /* Add this for compatibility */
+    -webkit-box-orient: vertical;
+    box-orient: vertical; /* Add this for compatibility */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 require '../config/db.php';
@@ -7,26 +8,69 @@ if (!isset($_SESSION['username'])) {
     exit;
 }
 
-
 $message = ""; // Variabel untuk pesan pemberitahuan
+
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $collection = $db->news;
-    $result = $collection->insertOne([
-        'title' => $_POST['title'],
-        'content' => $_POST['content'],
-        'summary' => $_POST['summary'],
-        'author' => $_POST['author'],
-        'category' => $_POST['category'],
-        'created_at' => new MongoDB\BSON\UTCDateTime(),
-        'updated_at' => new MongoDB\BSON\UTCDateTime()
-    ]);
+    $target_dir = "../images/";
+    $target_file = $target_dir . basename($_FILES["image"]["name"]);
+    $uploadOk = 1;
+    $imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+    
 
-    // Set pesan pemberitahuan
-    $message = "Berita berhasil ditambahkan!";
+    // Check if image file is a actual image or fake image
+    $check = getimagesize($_FILES["image"]["tmp_name"]);
+    if($check !== false) {
+        $uploadOk = 1;
+    } else {
+        $message = "File is not an image.";
+        $uploadOk = 0;
+    }
+
+    // Check if file already exists
+    if (file_exists($target_file)) {
+        $message = "Sorry, file already exists.";
+        $uploadOk = 0;
+    }
+
+    // Check file size
+    if ($_FILES["image"]["size"] > 500000) {
+        $message = "Sorry, your file is too large.";
+        $uploadOk = 0;
+    }
+
+    // Allow certain file formats
+    if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif" ) {
+        $message = "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+        $uploadOk = 0;
+    }
+
+    // Check if $uploadOk is set to 0 by an error
+    if ($uploadOk == 0) {
+        $message = "Sorry, your file was not uploaded.";
+    // if everything is ok, try to upload file
+    } else {
+        if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
+            $result = $collection->insertOne([
+                'title' => $_POST['title'],
+                'content' => $_POST['content'],
+                'summary' => $_POST['summary'],
+                'author' => $_POST['author'],
+                'category' => $_POST['category'],
+                'created_at' => new MongoDB\BSON\UTCDateTime(),
+                'updated_at' => new MongoDB\BSON\UTCDateTime(),
+                'image' => $target_file
+            ]);
+
+            // Set pesan pemberitahuan
+            $message = "Berita berhasil ditambahkan!";
+        } else {
+            $message = "Sorry, there was an error uploading your file.";
+        }
+    }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -69,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- Form Tambah Berita -->
     <div class="container mt-4">
         <h1>Tambah Berita</h1>
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="title" class="form-label">Judul</label>
                 <input type="text" class="form-control" id="title" name="title" required>
@@ -86,10 +130,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <label for="author" class="form-label">Penulis</label>
                 <input type="text" class="form-control" id="author" name="author" required>
             </div>
+            <!-- Kategori Dropdown -->
             <div class="mb-3">
                 <label for="category" class="form-label">Kategori</label>
-                <input type="text" class="form-control" id="category" name="category" required>
+                <select class="form-select" id="category" name="category" required>
+                    <option value="">Pilih Kategori</option>
+                    <option value="politik">Politik</option>
+                    <option value="bencana">Bencana</option>
+                    <option value="lalu-lintas">Lalu Lintas</option>
+                    <option value="pendidikan">Pendidikan</option>
+                </select>
             </div>
+            <div class="mb-3">
+                <label for="image" class="form-label">Gambar</label>
+                <input type="file" class="form-control" id="image" name="image" accept=".jpg, .jpeg, .png, .gif">
+            </div>
+            <br>
             <button type="submit" class="btn btn-primary">Simpan</button>
         </form>
     </div>
@@ -98,3 +154,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
+
