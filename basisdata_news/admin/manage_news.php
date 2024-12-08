@@ -4,7 +4,7 @@ require '../config/db.php';
 
 if (!isset($_SESSION['username'])) {
     header('Location: login.php');
-    exit;
+    exit();
 }
 
 $collection = $db->news;
@@ -27,9 +27,9 @@ $newsList = iterator_to_array($newsCursor);
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Admin Panel</a>
+            <a class="navbar-brand fw-bold" href="manage_news.php">Admin <span class="text-danger">Polinews</span></a>
             <!-- Tombol Menu Burger -->
             <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,14 +45,11 @@ $newsList = iterator_to_array($newsCursor);
                         <a class="nav-link" href="add_news.php">Tambah Berita</a>
                     </li>
                     <li class="nav-item">
-                        
                         <a class="nav-link" href="logout.php">
                             <button class="btn btn-danger btn-sm">  
                             Logout
                             </button>
-                        </a>
-                        
-                        
+                        </a> 
                     </li>
                 </ul>
             </div>

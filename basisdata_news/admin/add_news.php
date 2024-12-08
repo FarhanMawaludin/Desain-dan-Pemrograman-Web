@@ -1,55 +1,54 @@
-
 <?php
 session_start();
 require '../config/db.php';
 
+// Redirect jika user belum login
 if (!isset($_SESSION['username'])) {
     header('Location: login.php');
-    exit;
+    exit();
 }
 
-$message = ""; // Variabel untuk pesan pemberitahuan
-
+// Variabel untuk pesan pemberitahuan
+$message = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $collection = $db->news;
     $target_dir = "../images/";
     $target_file = $target_dir . basename($_FILES["image"]["name"]);
     $uploadOk = 1;
-    $imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
-    
+    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-    // Check if image file is a actual image or fake image
+    // Validasi apakah file adalah gambar
     $check = getimagesize($_FILES["image"]["tmp_name"]);
-    if($check !== false) {
+    if ($check !== false) {
         $uploadOk = 1;
     } else {
         $message = "File is not an image.";
         $uploadOk = 0;
     }
 
-    // Check if file already exists
+    // Cek jika file sudah ada
     if (file_exists($target_file)) {
         $message = "Sorry, file already exists.";
         $uploadOk = 0;
     }
 
-    // Check file size
+    // Cek ukuran file
     if ($_FILES["image"]["size"] > 500000) {
         $message = "Sorry, your file is too large.";
         $uploadOk = 0;
     }
 
-    // Allow certain file formats
-    if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif" ) {
+    // Validasi format file
+    $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
+    if (!in_array($imageFileType, $allowed_types)) {
         $message = "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
         $uploadOk = 0;
     }
 
-    // Check if $uploadOk is set to 0 by an error
+    // Jika tidak ada error, proses upload
     if ($uploadOk == 0) {
         $message = "Sorry, your file was not uploaded.";
-    // if everything is ok, try to upload file
     } else {
         if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
             $result = $collection->insertOne([
@@ -60,19 +59,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'category' => $_POST['category'],
                 'created_at' => new MongoDB\BSON\UTCDateTime(),
                 'updated_at' => new MongoDB\BSON\UTCDateTime(),
-                'image' => $target_file
+                'image' => basename($_FILES["image"]["name"]) // Simpan hanya nama file
             ]);
 
-            // Set pesan pemberitahuan
+            // Pesan pemberitahuan
             $message = "Berita berhasil ditambahkan!";
+            header('Location: manage_news.php');
+            exit;
         } else {
             $message = "Sorry, there was an error uploading your file.";
         }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -80,20 +83,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script>
-        // Fungsi untuk menampilkan alert jika ada pesan
-        function showMessage(message) {
-            if (message) {
-                alert(message);
-            }
+    // Fungsi untuk menampilkan alert jika ada pesan
+    function showMessage(message) {
+        if (message) {
+            alert(message);
         }
+    }
     </script>
 </head>
+
 <body onload="showMessage('<?= $message ?>')">
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Admin Panel</a>
+            <a class="navbar-brand fw-bold" href="manage_news.php">Admin <span class="text-danger">Polinews</span></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -146,14 +150,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <input type="file" class="form-control" id="image" name="image" accept=".jpg, .jpeg, .png, .gif">
             </div>
             <br>
-            <button type="submit" class="btn btn-primary">Simpan</button>
+            <button type="submit" class="btn btn-primary mb-3">Simpan</button>
         </form>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
-
-
-
