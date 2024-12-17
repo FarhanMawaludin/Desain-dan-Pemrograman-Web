@@ -1,5 +1,4 @@
 <?php
-session_start();
 require '../config/db.php';
 
 // Redirect jika user belum login
@@ -59,7 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'category' => $_POST['category'],
                 'created_at' => new MongoDB\BSON\UTCDateTime(),
                 'updated_at' => new MongoDB\BSON\UTCDateTime(),
-                'image' => basename($_FILES["image"]["name"]) // Simpan hanya nama file
+                'image' => basename($_FILES["image"]["name"]), // Simpan hanya nama file
+                'views' => 0 // Tambahkan field views dengan nilai awal 0
             ]);
 
             // Pesan pemberitahuan
@@ -147,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <div class="mb-3">
                 <label for="image" class="form-label">Gambar</label>
-                <input type="file" class="form-control" id="image" name="image" accept=".jpg, .jpeg, .png, .gif">
+                <input type="file" class="form-control" id="image" name="image" accept=".jpg, .jpeg, .png, .gif" required>
             </div>
             <br>
             <button type="submit" class="btn btn-primary mb-3">Simpan</button>

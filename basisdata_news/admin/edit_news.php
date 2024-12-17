@@ -1,5 +1,4 @@
 <?php
-session_start();
 require '../config/db.php';
 
 // Redirect jika user belum login
